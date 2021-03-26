@@ -1,9 +1,15 @@
+from xmlrpc import client as xmlrpclib
 from django.contrib.auth import get_user_model, authenticate
 from django.utils.translation import ugettext_lazy as _
 
 from rest_framework import serializers
 
 from .models import Document
+
+url = 'http://drugstoc-sam-dev-1293660.dev.odoo.com'
+db = 'drugstoc-sam-dev-1293660'
+username = 'ronyek@gmail.com'
+password = 'mko0nji9'
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for the user object"""
@@ -64,11 +70,11 @@ class AuthTokenSerializer(serializers.Serializer):
     email = serializers.CharField()
     password = serializers.CharField(style={'input_type': 'password'}, trim_whitespace=False)
 
+
     def validate(self, attrs):
         """Validate and authenticate the user"""
         email = attrs.get('email')
         password = attrs.get('password')
-
         user = authenticate(request=self.context.get('request'), username=email, password=password)
         if not user:
             msg = ('Unable to autheticate with provided details')

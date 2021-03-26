@@ -15,17 +15,21 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import status, viewsets, mixins
 
-from .uil import return_products as get_object, return_categories, return_manufacturer, return_orders, return_order_details, return_response
+from .uil import return_products as get_object, return_categories, return_manufacturer, return_orders, return_order_details, return_response, return_user
 
 from django.core.exceptions import ObjectDoesNotExist
 
 from django.db.models import Q
 
-from .serializers import ProductSerializer, CategorySerializer, ManfacturerSerializer, orderSerializer, CreateOrderSerializer
+from .serializers import ProductSerializer, CategorySerializer, ManfacturerSerializer, orderSerializer, CreateOrderSerializer, syncUserSerializer
 
 from product.models import ProductModel
 
+from user.models import User
+
 from manufacturers.models import ManufacturerModel
+
+from django.contrib.auth import get_user_model, authenticate
 
 
 # url = 'http://drugstoc-sam-dev-1293660.dev.odoo.com'
@@ -33,15 +37,15 @@ from manufacturers.models import ManufacturerModel
 # username = 'ronyek@gmail.com'
 # password = 'mko0nji9'
 
-# url = 'http://drugstoc.odoo.com'
-# db = 'drugstoc-main-master-86674'
-# username ='licensemgr@drugstoc.com'
-# password = 'mko0nji9'
-
 url = 'http://drugstoc.odoo.com'
 db = 'drugstoc-main-master-86674'
-username ='app@drugstoc.com'
-password = 'app123456'
+username ='licensemgr@drugstoc.com'
+password = 'mko0nji9'
+
+# url = 'http://drugstoc.odoo.com'
+# db = 'drugstoc-main-master-86674'
+# username ='app@drugstoc.com'
+# password = 'app123456'
 
 
 
@@ -86,6 +90,7 @@ class ProductsList(generics.ListAPIView):
                     'create_date',
                     'description',
                     'categ_id',
+                    # 'image',
                 ], 'limit': 50, 'offset': offset})
         result = map(get_object, data)
         return return_response(request, result, total, offset)
@@ -493,8 +498,8 @@ class UserInvoice(generics.ListAPIView):
             ]], 
             {'fields': 
                 [
-                    'id',
-                    'name', 
+                    # 'id',
+                    # 'name', 
                     # "price_unit",
                     # "price_subtotal",
                     # "price_total",
@@ -504,10 +509,47 @@ class UserInvoice(generics.ListAPIView):
                     # "order_partner_id",
                     # "state",
                     # "create_date"
-                ],'limit': 50, 'offset': offset})
+                ],'limit': 5, 'offset': offset})
             result = map(return_order_details, data)
             return return_response(request, data, total, offset)
 
+class SyncUser(generics.CreateAPIView):
+    queryset = ProductModel.objects.all()
+    serializer_class = syncUserSerializer
+    # authentication_classes = (authentication.TokenAuthentication,)
+    # permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        data = request.data.get('items')
+        # user = request.user.erp_id
+        common = xmlrpclib.ServerProxy('{}/xmlrpc/2/common'.format(url))
+        uid = common.authenticate(db, username, password, {})
+        models = xmlrpclib.ServerProxy('{}/xmlrpc/2/object'.format(url))
+        params = models.execute_kw(db, uid, password,
+            'res.partner', 'search_read',
+            [ {
+                # 'partner_id' : user,
+                # 'partner_share', '=', True
+            }],{'fields': 
+                [
+                    'id',
+                    'name', 
+                    'email',
+                    'x_studio_field_vM2kZ',
+                    "mobile",
+                    "price_subtotal",
+                    "phone",
+                ],'limit': 3})
+
+        resp = map(return_user, params)
+        users = list(resp)
+        print(users);
+        # for item in users:
+        #     print(item)
+        #     get_user_model().objects.create_user(email=item['email'])
+        # print(u)
+        get_user_model().objects.bulk_create([User(**each) for each in users])
+        return Response({"message": "User synced"}, status=201)
 
 class CreateOrder(generics.CreateAPIView):
     queryset = ProductModel.objects.all()

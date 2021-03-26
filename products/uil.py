@@ -6,7 +6,8 @@ def return_products(n):
             "id": dm, 
             "name": n['name'], 
             "description": n['description'],
-            "image": f'https://drugstoc.odoo.com/web/image/product.product/{dm}/image',
+            # "image": n['image'],
+            "image": f'http://drugstoc.odoo.com/web/image/product.product/{dm}/image',
             "price": n['list_price'],
             "composition": n['x_studio_field_5Gttm'],
             "manufacturer": n['x_studio_field_xH9Vy'],
@@ -14,6 +15,26 @@ def return_products(n):
             "category": n['categ_id'][1],
             "create_date": n['create_date']
         } 
+
+def return_user(n):
+    if n['email'] is not False:
+            return {
+                "erp_id": n['id'], 
+                "name": n['name'], 
+                "password": "123456",
+                "phone_no": n['phone'] or n['mobile'],
+                "email": n['email'],
+                "category": n['x_studio_field_vM2kZ']
+            } 
+    else:
+            return {
+                "erp_id": n['id'], 
+                "name": n['name'], 
+                "password": "123456",
+                "phone_no": n['phone'] or n['mobile'],
+                "email": n['name'],
+                "category": n['x_studio_field_vM2kZ']
+            } 
 
 def return_categories(n):
     return {

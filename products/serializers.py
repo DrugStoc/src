@@ -45,6 +45,13 @@ class orderSerializer(serializers.Serializer):
     class Meta:
         fields = ['name','image','ids','quantity', 'price', 'created_at']
 
+class syncUserSerializer(serializers.Serializer):
+    email = serializers.CharField(allow_blank=False, allow_null=False)
+    password = serializers.CharField(allow_blank=False, allow_null=False)
+
+    class Meta:
+        fields = ['email', 'password']
+
 
     def create(self, validate_data):
         return MyDrugStocItem.objects.create(**validate_data)
