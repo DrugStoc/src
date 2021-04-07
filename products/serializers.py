@@ -61,3 +61,9 @@ class CreateOrderSerializer(serializers.Serializer):
 
     class Meta:
         fields = ['name','image','ids','quantity', 'price', 'created_at']
+
+class BulkManufacturers(serializers.Serializer):
+    lists = ManfacturerSerializer(many=True)
+
+    class Meta:
+        fields = ['lists']
