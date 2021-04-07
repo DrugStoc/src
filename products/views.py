@@ -21,7 +21,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from django.db.models import Q
 
-from .serializers import ProductSerializer, CategorySerializer, ManfacturerSerializer, orderSerializer, CreateOrderSerializer, syncUserSerializer
+from .serializers import ProductSerializer, CategorySerializer, ManfacturerSerializer, orderSerializer, CreateOrderSerializer, syncUserSerializer, BulkManufacturers
 
 from product.models import ProductModel
 
@@ -32,15 +32,15 @@ from manufacturers.models import ManufacturerModel
 from django.contrib.auth import get_user_model, authenticate
 
 
-# url = 'http://drugstoc-sam-dev-1293660.dev.odoo.com'
-# db = 'drugstoc-sam-dev-1293660'
-# username = 'ronyek@gmail.com'
-# password = 'mko0nji9'
-
-url = 'http://drugstoc.odoo.com'
-db = 'drugstoc-main-master-86674'
-username ='licensemgr@drugstoc.com'
+url = 'http://drugstoc-sam-dev-1293660.dev.odoo.com'
+db = 'drugstoc-sam-dev-1293660'
+username = 'ronyek@gmail.com'
 password = 'mko0nji9'
+
+# url = 'http://drugstoc.odoo.com'
+# db = 'drugstoc-main-master-86674'
+# username ='licensemgr@drugstoc.com'
+# password = 'mko0nji9'
 
 # url = 'http://drugstoc.odoo.com'
 # db = 'drugstoc-main-master-86674'
@@ -584,3 +584,19 @@ class CreateOrder(generics.CreateAPIView):
         for l in orders:
             params2 = models.execute_kw(db, uid, password,'sale.order.line', 'create',[l]);
         return Response({"message": "Draft Created", "data": result, "user": user, "params2": params2}, status=201)
+
+class Bulk_Manufacturers(generics.CreateAPIView):
+    queryset = ManufacturerModel.objects.all()
+    serializer_class = BulkManufacturers
+    authentication_classes = (authentication.TokenAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        data = request.data.get('lists')
+        # bulk = []
+        # for item in data:
+        #     data =  self.get_queryset()
+        #     if not data:
+        #         ManufacturerModel.objects.create(**item)
+        ManufacturerModel.objects.bulk_create([ManufacturerModel(**each) for each in data])
+        return Response({"message": "success"}, status=201)
