@@ -45,12 +45,18 @@ class orderSerializer(serializers.Serializer):
     class Meta:
         fields = ['name','image','ids','quantity', 'price', 'created_at']
 
-class syncUserSerializer(serializers.Serializer):
-    email = serializers.CharField(allow_blank=False, allow_null=False)
-    password = serializers.CharField(allow_blank=False, allow_null=False)
+class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ['email', 'password']
+        model = get_user_model()
+        fields = "__all__"
+
+class syncUserSerializer(serializers.Serializer):
+    
+    items = UserSerializer(many=True)
+
+    class Meta:
+        fields = ['Items']
 
 
     def create(self, validate_data):

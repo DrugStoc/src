@@ -10,6 +10,8 @@ from rest_framework.authtoken.models import Token
 from django.utils.timezone import now
 from rest_framework.parsers import MultiPartParser
 
+from django.contrib.auth.hashers import make_password
+
 
 from rest_framework.response import Response
 from rest_framework import status
@@ -514,41 +516,18 @@ class UserInvoice(generics.ListAPIView):
             return return_response(request, data, total, offset)
 
 class SyncUser(generics.CreateAPIView):
-    queryset = ProductModel.objects.all()
+    queryset = get_user_model().objects.all()
     serializer_class = syncUserSerializer
     # authentication_classes = (authentication.TokenAuthentication,)
     # permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request):
         data = request.data.get('items')
-        # user = request.user.erp_id
-        common = xmlrpclib.ServerProxy('{}/xmlrpc/2/common'.format(url))
-        uid = common.authenticate(db, username, password, {})
-        models = xmlrpclib.ServerProxy('{}/xmlrpc/2/object'.format(url))
-        params = models.execute_kw(db, uid, password,
-            'res.partner', 'search_read',
-            [ {
-                # 'partner_id' : user,
-                # 'partner_share', '=', True
-            }],{'fields': 
-                [
-                    'id',
-                    'name', 
-                    'email',
-                    'x_studio_field_vM2kZ',
-                    "mobile",
-                    "price_subtotal",
-                    "phone",
-                ],'limit': 3})
-
-        resp = map(return_user, params)
-        users = list(resp)
-        print(users);
         # for item in users:
         #     print(item)
         #     get_user_model().objects.create_user(email=item['email'])
-        # print(u)
-        get_user_model().objects.bulk_create([User(**each) for each in users])
+
+        get_user_model().objects.bulk_create([User(name=each['name'], email=each['email'], password=make_password(each['password']), category=each['category']) for each in data])
         return Response({"message": "User synced"}, status=201)
 
 class CreateOrder(generics.CreateAPIView):
