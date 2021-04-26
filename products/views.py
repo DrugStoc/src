@@ -34,20 +34,20 @@ from manufacturers.models import ManufacturerModel
 from django.contrib.auth import get_user_model, authenticate
 
 
-# url = 'http://drugstoc-sam-dev-1293660.dev.odoo.com'
-# db = 'drugstoc-sam-dev-1293660'
-# username = 'ronyek@gmail.com'
-# password = 'mko0nji9'
+url = 'https://drugstoc-erpsoft-2382972.dev.odoo.com'
+db = 'drugstoc-erpsoft-2382972'
+username = 'licensemgr@drugstoc.com'
+password = 'mko0nji9'
 
 # url = 'http://drugstoc.odoo.com'
 # db = 'drugstoc-main-master-86674'
 # username ='licensemgr@drugstoc.com'
 # password = 'mko0nji9'
 
-url = 'http://drugstoc.odoo.com'
-db = 'drugstoc-main-master-86674'
-username ='app@drugstoc.com'
-password = 'app123456'
+# url = 'http://drugstoc.odoo.com'
+# db = 'drugstoc-main-master-86674'
+# username ='app@drugstoc.com'
+# password = 'app123456'
 
 
 
