@@ -527,7 +527,7 @@ class SyncUser(generics.CreateAPIView):
         #     print(item)
         #     get_user_model().objects.create_user(email=item['email'])
 
-        get_user_model().objects.bulk_create([User(name=each['name'], email=each['email'], password=make_password(each['password']), category=each['category']) for each in data])
+        get_user_model().objects.bulk_create([User(name=each['name'], email=each['email'], password=make_password(each['password']), category=each['category'], erp_id=each['erp_id']) for each in data])
         return Response({"message": "User synced"}, status=201)
 
 class CreateOrder(generics.CreateAPIView):

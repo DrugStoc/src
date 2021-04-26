@@ -30,5 +30,5 @@ class DocumentAdmin(admin.ModelAdmin):
     list_display = ('user', 'location', 'discover', 'practice_license', 'premise_license')
 
 admin.site.register(models.User, UserAdmin)
-# admin.site.register(models.PhoneOtp)
+admin.site.register(models.PhoneOtp)
 admin.site.register(models.Document, DocumentAdmin)

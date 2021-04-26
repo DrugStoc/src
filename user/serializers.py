@@ -83,6 +83,13 @@ class AuthTokenSerializer(serializers.Serializer):
         attrs['user'] = user
         return attrs
 
+class ResendOtpSerilizer(serializers.Serializer):
+    """Serilizer for the user resend otp"""
+    old_phone = serializers.CharField()
+    new_phone = serializers.CharField()
+
+    class Meta:
+        fields = ("old_phone", "new_phone");
 
 class UploadDocumentSerializer(serializers.Serializer):
     """Serializer for uploading document"""

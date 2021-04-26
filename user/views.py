@@ -22,7 +22,7 @@ from .models import User, PhoneOtp, Document
 
 from django.db.models import Q
 
-from .serializers import UserSerializer, OtpSerializer, AuthTokenSerializer, UploadDocumentSerializer
+from .serializers import UserSerializer, OtpSerializer, AuthTokenSerializer, UploadDocumentSerializer, ResendOtpSerilizer
 # AuthTokenSerializer, OtpSerializer
 
 from rest_framework.response import Response
@@ -75,6 +75,39 @@ class CreateUserView(generics.CreateAPIView):
         return Response({"message": "Invalid Request", "status": 400}, status=400)
 
 
+class ResendOtp(generics.CreateAPIView):
+    """Create a new user in the system"""
+    serializer_class = ResendOtpSerilizer
+    permission_class = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        API_ENDPOINT = "https://termii.com/api/sms/send"
+        OTP = generateOTP()
+        new_phone = data.get('new_phone')
+        old_phone = data.get('old_phone')
+        print(old_phone)
+        print(new_phone)
+        dat = {
+            "to": new_phone,
+            "from": "N-Alert",
+            "sms": f'{OTP} is your Drugstoc OTP validation code. Code is valid for 10 minutes only, one time use. Happy Procurement',
+            "type": "plain",
+            "channel": "dnd",
+            "api_key": API_KEY,
+        }
+        try:
+            qs = User.objects.get(phone_no=old_phone)
+        except ObjectDoesNotExist:
+            return Response({"message": "User does not exist in our database", "status": 401}, status=401)
+        else:
+            qs.phone_no = new_phone
+            qs.save()
+            PhoneOtp.objects.create(phone_no=new_phone, otp_code=OTP)
+            r = requests.post(url = API_ENDPOINT, data = dat)
+            return Response({"message": "your otp was resent successful", "status": 200, "new_number": new_phone, }, status=200)
+        return Response({"message": "Invalid Request", "status": 400}, status=400)
+
 class DocumentList(generics.CreateAPIView):
     """List all users in the system"""
     # queryset = Document.objects.all()
@@ -99,8 +132,11 @@ class VerifyOtp(generics.CreateAPIView):
         data = request.data
         otp = data.get('otp')
         phone_no = data.get('phone_no')
+        print(otp)
+        print(phone_no)
         try:
             cod  = PhoneOtp.objects.get(phone_no=phone_no, otp_code=otp, is_verified=False)
+            print(cod)
         except ObjectDoesNotExist:
             return Response({"message": "Invalid Otp please check and try again"}, status=422)
         else:

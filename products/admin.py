@@ -6,6 +6,7 @@ from categories.models import CategoryModel
 
 
 class ManufacturerAdmin(admin.ModelAdmin):
+    search_fields = ('name', 'priority', 'image',)
     list_display = ('name', 'priority', 'image',)
 
 
