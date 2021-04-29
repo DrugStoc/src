@@ -33,6 +33,9 @@ from manufacturers.models import ManufacturerModel
 
 from django.contrib.auth import get_user_model, authenticate
 
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
+
 
 url = 'https://drugstoc-erpsoft-2382972.dev.odoo.com'
 db = 'drugstoc-erpsoft-2382972'
@@ -292,6 +295,11 @@ class BrandList(generics.ListAPIView):
         serializer_class = ManfacturerSerializer
         authentication_classes = (authentication.TokenAuthentication,)
         permission_classes = (permissions.IsAuthenticated,)
+        filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+        filterset_fields = [ "id", "name", "priority"]
+        search_fields = ["id", "name", "priority"]
+        ordering_fields = ["id", "name", "priority"]
+        ordering = ["id"]
 
 class ProductPerCatgory(generics.ListAPIView):
         queryset = ProductModel.objects.all()
@@ -425,6 +433,7 @@ class UserOrder(generics.ListAPIView):
                     "date_order",
                     "order_line"
                 ], 'limit': 50, 'offset': offset})
+            print()
             result = map(return_orders, data)
             return return_response(request, result, total, offset)
 

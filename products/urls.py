@@ -15,6 +15,7 @@ urlpatterns = [
     path('odoo-manufacturer', views.ManufacturerList.as_view(), name="odoo_manufacturer"),
     path('manufacturer', views.BrandList.as_view(), name="manufacturer"),
     path('manufacturer/<str:name>', views.ProductPerManufacturer.as_view(), name="product_manufacturer"),
+    # path('manufacturer/<str:name>/search', views.SearchManufacturerList.as_view(), name="search product brand"),
     path('search', views.SearchResultList.as_view(), name="search"),
     path('create-order', views.CreateOrder.as_view(), name="create order"),
     path('sync_user', views.SyncUser.as_view(), name="sync user"),
