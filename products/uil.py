@@ -72,7 +72,7 @@ def return_orders(n):
 def return_order_details(n):
     dm = n["product_id"][0]
     return {
-        "id": n['id'],
+        "id": dm,
         "name": n['name'],
         "status": n["state"],
         "salesman": n["salesman_id"][1],
