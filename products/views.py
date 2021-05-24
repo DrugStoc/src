@@ -83,6 +83,7 @@ class ProductsList(generics.ListAPIView):
                 [ 'company_id', '=', 1 ],
                 [ 'sale_ok', '=', True ],
                 [ 'website_published', '=', True ],
+                [ 'qty_available', '>', 0 ],
             ]], 
             {'fields': 
                 [
@@ -96,7 +97,8 @@ class ProductsList(generics.ListAPIView):
                     'description',
                     'categ_id',
                     # 'image',
-                ], 'limit': 50, 'offset': offset})
+                ], 'limit': 50, 'offset': offset, 'order': 'qty_available '})
+        print(data)
         result = map(get_object, data)
         return return_response(request, result, total, offset)
         # print(request.build_absolute_uri(''))
@@ -478,7 +480,7 @@ class UserOrderDetail(generics.ListAPIView):
                     "order_partner_id",
                     "state",
                     "create_date"
-                ], 'limit': 50, 'offset': offset})
+                ]})
             result = map(return_order_details, data)
             return return_response(request, result, total, offset)
 
