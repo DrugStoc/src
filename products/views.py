@@ -29,6 +29,8 @@ from product.models import ProductModel
 
 from user.models import User
 
+from cart.models import CartItem
+
 from manufacturers.models import ManufacturerModel
 
 from django.contrib.auth import get_user_model, authenticate
@@ -37,20 +39,20 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
 
-url = 'https://drugstoc-erpsoft-2382972.dev.odoo.com'
-db = 'drugstoc-erpsoft-2382972'
-username = 'licensemgr@drugstoc.com'
-password = 'mko0nji9'
+# url = 'https://drugstoc-erpsoft-2382972.dev.odoo.com'
+# db = 'drugstoc-erpsoft-2382972'
+# username = 'licensemgr@drugstoc.com'
+# password = 'mko0nji9'
 
 # url = 'http://drugstoc.odoo.com'
 # db = 'drugstoc-main-master-86674'
 # username ='licensemgr@drugstoc.com'
 # password = 'mko0nji9'
 
-# url = 'http://drugstoc.odoo.com'
-# db = 'drugstoc-main-master-86674'
-# username ='app@drugstoc.com'
-# password = 'app123456'
+url = 'http://drugstoc.odoo.com'
+db = 'drugstoc-main-master-86674'
+username ='app@drugstoc.com'
+password = 'app123456'
 
 
 
@@ -98,7 +100,7 @@ class ProductsList(generics.ListAPIView):
                     'categ_id',
                     # 'image',
                 ], 'limit': 50, 'offset': offset, 'order': 'qty_available '})
-        print(data)
+        # print(data)
         result = map(get_object, data)
         return return_response(request, result, total, offset)
         # print(request.build_absolute_uri(''))
@@ -573,6 +575,7 @@ class CreateOrder(generics.CreateAPIView):
         print(orders)
         for l in orders:
             params2 = models.execute_kw(db, uid, password,'sale.order.line', 'create',[l]);
+        CartItem.objects.filter(is_checkedout=False).update(is_checkedout=True)
         return Response({"message": "Draft Created", "data": result, "user": user, "params2": params2}, status=201)
 
 class Bulk_Manufacturers(generics.CreateAPIView):
@@ -590,3 +593,57 @@ class Bulk_Manufacturers(generics.CreateAPIView):
         #         ManufacturerModel.objects.create(**item)
         ManufacturerModel.objects.bulk_create([ManufacturerModel(**each) for each in data])
         return Response({"message": "success"}, status=201)
+
+class SalesRep_Activities(generics.ListAPIView):
+    queryset = ManufacturerModel.objects.all()
+    serializer_class = BulkManufacturers
+    authentication_classes = (authentication.TokenAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def list(self, request, *args, **kwargs):
+            user = request.user.erp_id;
+            common = xmlrpclib.ServerProxy('{}/xmlrpc/2/common'.format(url))
+            uid = common.authenticate(db, username, password, {})
+            models = xmlrpclib.ServerProxy('{}/xmlrpc/2/object'.format(url))
+            page = request.query_params.get('page')
+            page_number = 0 if page == None else int(page) - 1
+            offset = page_number * 50
+            total = models.execute_kw(db, uid, password,
+            'account.general.ledger', 'search_count',
+            [[
+                # ['partner_id', '=', 9773 ],
+            ]]) 
+            data = models.execute_kw(
+            db, uid, password, 
+            'account.general.ledger', 'search_read', 
+            [[
+                # ['partner_id', '=', 9773 ],
+            ]], 
+            {'fields': 
+                [
+                    # 'id',
+                    # 'name',
+                    # "display_name",
+                    # "write_date",
+                    # "create_date",
+                    # "debit",
+                    # "credit",
+                    # "balance",
+                    # "debit_cash_basis",
+                    # "credit_cash_basis",
+                    # "balance_cash_basis",
+                    # "amount_currency",
+
+                    # "price_unit",
+                    # "price_subtotal",
+                    # "price_total",
+                    # "product_id",
+                    # "product_uom_qty",
+                    # "salesman_id",
+                    # "order_partner_id",
+                    # "state",
+                    # "create_date"
+                ],'limit': 50, 'offset': offset})
+            print(data)
+            # result = map(return_order_details, data)
+            return return_response(request, data, total, offset)

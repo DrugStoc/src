@@ -36,7 +36,7 @@ class AddItemToCart(generics.ListCreateAPIView):
 
     def list(self, request):
         paginator = PageNumberPagination()
-        paginator.page_size = 20
+        paginator.page_size = 2000
         queryset = self.get_queryset().filter(user=self.request.user, is_checkedout=False)
         result_page = paginator.paginate_queryset(queryset, request)
         serializer = UserCartSerializer(result_page, many=True)
