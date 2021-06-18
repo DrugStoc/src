@@ -44,15 +44,15 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 # username = 'licensemgr@drugstoc.com'
 # password = 'mko0nji9'
 
-# url = 'http://drugstoc.odoo.com'
-# db = 'drugstoc-main-master-86674'
-# username ='licensemgr@drugstoc.com'
-# password = 'mko0nji9'
-
 url = 'http://drugstoc.odoo.com'
 db = 'drugstoc-main-master-86674'
-username ='app@drugstoc.com'
-password = 'app123456'
+username ='licensemgr@drugstoc.com'
+password = 'mko0nji9'
+
+# url = 'http://drugstoc.odoo.com'
+# db = 'drugstoc-main-master-86674'
+# username ='app@drugstoc.com'
+# password = 'app123456'
 
 
 
@@ -99,7 +99,7 @@ class ProductsList(generics.ListAPIView):
                     'description',
                     'categ_id',
                     # 'image',
-                ], 'limit': 50, 'offset': offset, 'order': 'qty_available '})
+                ], 'limit': 50, 'offset': offset, 'order': 'qty_available'})
         # print(data)
         result = map(get_object, data)
         return return_response(request, result, total, offset)
@@ -507,14 +507,16 @@ class UserInvoice(generics.ListAPIView):
             ]])
             data = models.execute_kw(
             db, uid, password, 
-            'res.partner', 'search_read', 
+            'res.users', 'search_read', 
             [[
+                ['login', '=', 'graceclinic@drugstoc.com'],
                 # ['partner_id', '=', user ],
             ]], 
             {'fields': 
                 [
                     # 'id',
                     # 'name', 
+                    # 'login'
                     # "price_unit",
                     # "price_subtotal",
                     # "price_total",
@@ -536,11 +538,7 @@ class SyncUser(generics.CreateAPIView):
 
     def post(self, request):
         data = request.data.get('items')
-        # for item in users:
-        #     print(item)
-        #     get_user_model().objects.create_user(email=item['email'])
-
-        get_user_model().objects.bulk_create([User(name=each['name'], email=each['email'], password=make_password(each['password']), category=each['category'], erp_id=each['erp_id']) for each in data])
+        get_user_model().objects.bulk_create([User(name=each['name'], first_name=each['first_name'], last_name=each['email'], phone_no=each['phone_no'], email=each['email'], password=make_password(each['password']), category=each['category'], erp_id=each['erp_id'], is_verified=True) for each in data])
         return Response({"message": "User synced"}, status=201)
 
 class CreateOrder(generics.CreateAPIView):
@@ -602,6 +600,61 @@ class SalesRep_Activities(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
             user = request.user.erp_id;
+            id = request.user.erp_id_2;
+            common = xmlrpclib.ServerProxy('{}/xmlrpc/2/common'.format(url))
+            uid = common.authenticate(db, username, password, {})
+            models = xmlrpclib.ServerProxy('{}/xmlrpc/2/object'.format(url))
+            page = request.query_params.get('page')
+            page_number = 0 if page == None else int(page) - 1
+            offset = page_number * 50 
+            data = models.execute_kw(
+            db, uid, password, 
+            'sale.order', 'search_read', 
+            [[
+                ['user_id', '=', id ],
+                ['date_order', '>=', '2021-06-01 00:00:00'],
+                ['date_order', '<=', '2021-06-10 00:00:00'],
+                ['state', '=', 'done']
+            ]], 
+            {'fields': 
+                [
+                    'id',
+                    'name', 
+                    "state",
+                    "date_order",
+                    "user_id",
+                    "partner_id",
+                    "amount_untaxed",
+                    "amount_tax",
+                    "amount_total",
+                    "payment_term_id",
+                    "date_order",
+                    "order_line"
+                ],'limit': 50, 'offset': offset,})
+            credit = models.execute_kw(
+            db, uid, password, 
+            'res.partner', 'search_read', 
+            [[
+                ['user_id', '=', id ],
+            ]], 
+            {'fields': 
+                [
+                    "credit",
+                ]})
+            sales = sum(item['amount_total'] for item in data)
+            credits = sum(item['credit'] for item in credit)
+            result = map(return_orders, data)
+            return Response({"sales": sales, "receivables": credits ,"data":result}, status=200)
+
+class SalesRep_Customer(generics.ListAPIView):
+    queryset = ManufacturerModel.objects.all()
+    serializer_class = BulkManufacturers
+    authentication_classes = (authentication.TokenAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def list(self, request, *args, **kwargs):
+            user = request.user.erp_id;
+            id = request.user.erp_id_2;
             common = xmlrpclib.ServerProxy('{}/xmlrpc/2/common'.format(url))
             uid = common.authenticate(db, username, password, {})
             models = xmlrpclib.ServerProxy('{}/xmlrpc/2/object'.format(url))
@@ -609,41 +662,60 @@ class SalesRep_Activities(generics.ListAPIView):
             page_number = 0 if page == None else int(page) - 1
             offset = page_number * 50
             total = models.execute_kw(db, uid, password,
-            'account.general.ledger', 'search_count',
+            'res.partner', 'search_count',
             [[
-                # ['partner_id', '=', 9773 ],
-            ]]) 
+                ['user_id', '=', id ],
+            ]])
             data = models.execute_kw(
             db, uid, password, 
-            'account.general.ledger', 'search_read', 
+            'res.partner', 'search_read', 
             [[
-                # ['partner_id', '=', 9773 ],
+                ['user_id', '=', id ],
+            ]], 
+            {'fields': 
+                [
+                    'id',
+                    'name',
+                    "debit",
+                    "credit",
+                ],'limit': 50, 'offset': offset,})
+            # result = map(return_order_details, data)
+            return return_response(request, data, total, offset)
+
+class Customer_Statement(generics.ListAPIView):
+    queryset = ManufacturerModel.objects.all()
+    serializer_class = BulkManufacturers
+    authentication_classes = (authentication.TokenAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def list(self, request, *args, **kwargs):
+            user = request.user.erp_id;
+            id = request.user.erp_id_2;
+            common = xmlrpclib.ServerProxy('{}/xmlrpc/2/common'.format(url))
+            uid = common.authenticate(db, username, password, {})
+            models = xmlrpclib.ServerProxy('{}/xmlrpc/2/object'.format(url))
+            page = request.query_params.get('page')
+            page_number = 0 if page == None else int(page) - 1
+            offset = page_number * 50
+            total = models.execute_kw(db, uid, password,
+            'account.move.line', 'search_count',
+            [[
+                ['partner_id', '=', 9411 ],
+            ]])
+            data = models.execute_kw(
+            db, uid, password, 
+            'account.move.line', 'search_read', 
+            [[
+                ['partner_id', '=', 9411 ],
+                # ["invoice_id", '=', 9411],
+                # ["company_id", '=', 1]
             ]], 
             {'fields': 
                 [
                     # 'id',
                     # 'name',
-                    # "display_name",
-                    # "write_date",
-                    # "create_date",
                     # "debit",
                     # "credit",
-                    # "balance",
-                    # "debit_cash_basis",
-                    # "credit_cash_basis",
-                    # "balance_cash_basis",
-                    # "amount_currency",
-
-                    # "price_unit",
-                    # "price_subtotal",
-                    # "price_total",
-                    # "product_id",
-                    # "product_uom_qty",
-                    # "salesman_id",
-                    # "order_partner_id",
-                    # "state",
-                    # "create_date"
-                ],'limit': 50, 'offset': offset})
-            print(data)
+                ],'limit': 50, 'offset': offset, 'order': 'name desc'})
             # result = map(return_order_details, data)
             return return_response(request, data, total, offset)

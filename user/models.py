@@ -55,6 +55,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=255, default="")
     last_name = models.CharField(max_length=255, default="")
     erp_id = models.IntegerField(default=0, blank=False)
+    erp_id_2 = models.IntegerField(default=0, blank=False)
+    erp_access = models.CharField(max_length=255, default="")
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=True)
     is_verified = models.BooleanField(default=False)

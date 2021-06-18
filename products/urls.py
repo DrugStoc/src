@@ -21,4 +21,6 @@ urlpatterns = [
     path('sync_user', views.SyncUser.as_view(), name="sync user"),
     path('bulk_manufacturers', views.Bulk_Manufacturers.as_view(), name="sync manufacturers"),
     path('sale_overview', views.SalesRep_Activities.as_view(), name="sync manufacturers"),
+    path('sale_customer', views.SalesRep_Customer.as_view(), name="sync manufacturers"),
+    path('account_statement/<int:id>', views.Customer_Statement.as_view(), name="sync manufacturers"),
 ]
