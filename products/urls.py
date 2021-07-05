@@ -10,6 +10,7 @@ urlpatterns = [
     path('category', views.CategoryList.as_view(), name="all_category"),
     path('category/<int:pk>', views.ProductPerCatgory.as_view(), name="product_category"),
     path('orders', views.UserOrder.as_view(), name="user_orders"),
+    path('rep_orders', views.RepOrder.as_view(), name="rep_orders"),
     path('orders/<int:pk>', views.UserOrderDetail.as_view(), name="user_orders"),
     path('invoice', views.UserInvoice.as_view(), name="user_invoice"),
     path('odoo-manufacturer', views.ManufacturerList.as_view(), name="odoo_manufacturer"),

@@ -92,6 +92,15 @@ def unique(list1):
             unique_list.append(x)
     return unique_list
 
+def return_user_statement(n):
+    return {
+        "id": n['id'],
+        "ref_title": n['display_name'],
+        "amount": n['debit'] if n['credit'] == 0.0 else n['credit'],
+        "status": 'debit' if n['credit'] == 0.0 else 'credit',
+        "date": n['create_date']
+    }
+
 def return_response(request, data, total, offset):
     page = request.query_params.get('page')
     uro = request.build_absolute_uri('')

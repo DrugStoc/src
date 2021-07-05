@@ -17,7 +17,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import status, viewsets, mixins
 
-from .uil import return_products as get_object, return_categories, return_manufacturer, return_orders, return_order_details, return_response, return_user
+from .uil import return_products as get_object, return_categories, return_manufacturer, return_orders, return_order_details, return_response, return_user, return_user_statement
 
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -437,7 +437,52 @@ class UserOrder(generics.ListAPIView):
                     "date_order",
                     "order_line"
                 ], 'limit': 50, 'offset': offset})
-            print()
+            result = map(return_orders, data)
+            return return_response(request, result, total, offset)
+
+class RepOrder(generics.ListAPIView):
+        queryset = ProductModel.objects.all()
+        serializer_class = ProductSerializer
+        authentication_classes = (authentication.TokenAuthentication,)
+        permission_classes = (permissions.IsAuthenticated,)
+
+        def list(self, request, *args, **kwargs):
+            user = request.user.erp_id;
+            id = request.user.erp_id_2;
+            common = xmlrpclib.ServerProxy('{}/xmlrpc/2/common'.format(url))
+            uid = common.authenticate(db, username, password, {})
+            models = xmlrpclib.ServerProxy('{}/xmlrpc/2/object'.format(url))
+            page = request.query_params.get('page')
+            page_number = 0 if page == None else int(page) - 1
+            offset = page_number * 50
+            total = models.execute_kw(db, uid, password,
+            'sale.order', 'search_count',
+            [[
+                ['user_id', '=', id],
+                # ['partner_id', '=', user ],
+            ]])
+            data = models.execute_kw(
+            db, uid, password, 
+            'sale.order', 'search_read', 
+            [[
+                ['user_id', '=', id ],
+                # ['partner_id', '=', user ],
+            ]], 
+            {'fields': 
+                [
+                    'id',
+                    'name', 
+                    "state",
+                    "date_order",
+                    "user_id",
+                    "partner_id",
+                    "amount_untaxed",
+                    "amount_tax",
+                    "amount_total",
+                    "payment_term_id",
+                    "date_order",
+                    "order_line"
+                ], 'limit': 50, 'offset': offset, 'order': 'date_order desc'})
             result = map(return_orders, data)
             return return_response(request, result, total, offset)
 
@@ -691,6 +736,7 @@ class Customer_Statement(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
             user = request.user.erp_id;
             id = request.user.erp_id_2;
+            pk = self.kwargs.get('id')
             common = xmlrpclib.ServerProxy('{}/xmlrpc/2/common'.format(url))
             uid = common.authenticate(db, username, password, {})
             models = xmlrpclib.ServerProxy('{}/xmlrpc/2/object'.format(url))
@@ -700,22 +746,25 @@ class Customer_Statement(generics.ListAPIView):
             total = models.execute_kw(db, uid, password,
             'account.move.line', 'search_count',
             [[
-                ['partner_id', '=', 9411 ],
+                ['partner_id', '=', pk ],
+                ["account_id", '=', 788]
             ]])
             data = models.execute_kw(
             db, uid, password, 
             'account.move.line', 'search_read', 
             [[
-                ['partner_id', '=', 9411 ],
-                # ["invoice_id", '=', 9411],
-                # ["company_id", '=', 1]
+                ['partner_id', '=', pk ],
+                ["account_id", '=', 788]
             ]], 
             {'fields': 
                 [
-                    # 'id',
-                    # 'name',
-                    # "debit",
-                    # "credit",
-                ],'limit': 50, 'offset': offset, 'order': 'name desc'})
-            # result = map(return_order_details, data)
-            return return_response(request, data, total, offset)
+                    "debit",
+                    "credit",
+                    "balance",
+                    "result",
+                    "display_name",
+                    "create_date",
+                ],'limit': 50, 'offset': offset, 'order': 'date desc'})
+            result = map(return_user_statement, data)
+            print(pk)
+            return return_response(request, result, total, offset)
