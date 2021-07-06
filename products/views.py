@@ -656,13 +656,15 @@ class SalesRep_Activities(generics.ListAPIView):
             today = datetime.today()
             datem = datetime(today.year, today.month, 1)
 
+            print(datem.isoformat(' ', 'seconds'))
+
             data = models.execute_kw(
             db, uid, password, 
             'sale.order', 'search_read', 
             [[
                 ['user_id', '=', id ],
-                ['date_order', '>=', datem],
-                ['date_order', '<=', datem],
+                ['date_order', '>=', datem.isoformat(' ', 'seconds')],
+                ['date_order', '<=', datem.isoformat(' ', 'seconds')],
                 ['state', '=', 'done']
             ]], 
             {'fields': 
