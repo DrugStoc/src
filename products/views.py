@@ -1,3 +1,4 @@
+import datetime
 from xmlrpc import client as xmlrpclib
 import socket
 import json
@@ -652,13 +653,16 @@ class SalesRep_Activities(generics.ListAPIView):
             page = request.query_params.get('page')
             page_number = 0 if page == None else int(page) - 1
             offset = page_number * 50 
+            today = datetime.today()
+            datem = datetime(today.year, today.month, 1)
+
             data = models.execute_kw(
             db, uid, password, 
             'sale.order', 'search_read', 
             [[
                 ['user_id', '=', id ],
-                ['date_order', '>=', '2021-06-01 00:00:00'],
-                ['date_order', '<=', '2021-06-10 00:00:00'],
+                ['date_order', '>=', datem],
+                ['date_order', '<=', datem],
                 ['state', '=', 'done']
             ]], 
             {'fields': 
