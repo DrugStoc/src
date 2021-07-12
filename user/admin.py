@@ -5,7 +5,7 @@ from django.utils.translation import gettext as _
 from . import models
 
 class UserAdmin(BaseUserAdmin):
-    ordering = ['id']
+    ordering = ['-id']
     search_fields = ('name', 'first_name', 'last_name', 'email',)
     list_display = ['email', 'name', 'first_name', 'last_name']
     fieldsets = (

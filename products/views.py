@@ -657,6 +657,7 @@ class SalesRep_Activities(generics.ListAPIView):
             datem = datetime(today.year, today.month, 1)
 
             print(datem.isoformat(' ', 'seconds'))
+            print(today.isoformat(' ', 'seconds'))
 
             data = models.execute_kw(
             db, uid, password, 
@@ -664,7 +665,7 @@ class SalesRep_Activities(generics.ListAPIView):
             [[
                 ['user_id', '=', id ],
                 ['date_order', '>=', datem.isoformat(' ', 'seconds')],
-                ['date_order', '<=', datem.isoformat(' ', 'seconds')],
+                ['date_order', '<=', today.isoformat(' ', 'seconds')],
                 ['state', '=', 'done']
             ]], 
             {'fields': 
