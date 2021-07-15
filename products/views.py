@@ -40,20 +40,27 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
 
-# url = 'https://drugstoc-erpsoft-2382972.dev.odoo.com'
-# db = 'drugstoc-erpsoft-2382972'
+# url = 'http://drugstoc-erpsoft-2890934.dev.odoo.com'
+# db = 'drugstoc-erpsoft-2890934'
 # username = 'licensemgr@drugstoc.com'
+# password = 'mko0nji9'
+
+# https://drugstoc-erpsoft-2890934.dev.odoo.com/
+
+# url = 'http://drugstoc-erpsoft-2890934.dev.odoo.com'
+# db = 'drugstoc-erpsoft-2890934'
+# username = 'salesRep@drugstoc.com'
+# password = '1234567890'
+
+# url = 'http://drugstoc.odoo.com'
+# db = 'drugstoc-main-master-86674'
+# username ='licensemgr@drugstoc.com'
 # password = 'mko0nji9'
 
 url = 'http://drugstoc.odoo.com'
 db = 'drugstoc-main-master-86674'
-username ='licensemgr@drugstoc.com'
-password = 'mko0nji9'
-
-# url = 'http://drugstoc.odoo.com'
-# db = 'drugstoc-main-master-86674'
-# username ='app@drugstoc.com'
-# password = 'app123456'
+username ='salesRep@drugstoc.com'
+password = '1234567890'
 
 
 

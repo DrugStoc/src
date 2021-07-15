@@ -117,7 +117,7 @@ def receiveable(n):
     # print(abs(due_days.days) > abs(delta.days))
     return {
         "credit_days": f'{delta.days} days' if delta.days > 0 else 'Cash on delivery',
-        "due_days": due_days.days <= 0,
+        "due_days": due_days.days < 0,
         "due_date": n['date_due'],
         "amount": n['amount_total_company_signed'],
         "date_invoice": n['date_invoice'],
