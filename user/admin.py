@@ -6,8 +6,8 @@ from . import models
 
 class UserAdmin(BaseUserAdmin):
     ordering = ['-id']
-    search_fields = ('name', 'first_name', 'last_name', 'email',)
-    list_display = ['email', 'name', 'first_name', 'last_name']
+    search_fields = ('name', 'first_name', 'last_name', 'email', 'phone_no')
+    list_display = ['email', 'name', 'first_name', 'last_name', 'phone_no']
     fieldsets = (
         (None, {'fields': ('email', 'password')}), 
         (_('Personal Info'), {'fields': ('name', 'first_name', 'last_name', 'category', 'phone_no', 'erp_id', 'erp_id_2', 'erp_access')}), 
