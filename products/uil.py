@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from rest_framework.response import Response
 
 def return_products(n):
@@ -99,6 +100,30 @@ def return_user_statement(n):
         "amount": n['debit'] if n['credit'] == 0.0 else n['credit'],
         "status": 'debit' if n['credit'] == 0.0 else 'credit',
         "date": n['create_date']
+    }
+
+def receiveable(n):
+    date_format = "%Y-%m-%d"
+    d0 = datetime.strptime(str(n['date_invoice']), date_format)
+    d1 = datetime.strptime(str(n['date_due']), date_format)
+    now = datetime.now()
+    d00 = date(day=d0.day, month=d0.month, year=d0.year)
+    d11 = date(day=d1.day, month=d1.month, year=d1.year)
+    d22 = date(day=now.day, month=now.month, year=now.year)
+    delta = d11 - d00
+    due_days = d11 - d22
+    # print(due_days.days)
+    # print(delta.days)
+    # print(abs(due_days.days) > abs(delta.days))
+    return {
+        "credit_days": f'{delta.days} days' if delta.days > 0 else 'Cash on delivery',
+        "due_days": due_days.days <= 0,
+        "due_date": n['date_due'],
+        "amount": n['amount_total_company_signed'],
+        "date_invoice": n['date_invoice'],
+        "invoice_number": n["number"],
+        "customer": n['partner_id'][1],
+        "created_date": n['date']
     }
 
 def return_response(request, data, total, offset):

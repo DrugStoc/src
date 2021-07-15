@@ -18,7 +18,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import status, viewsets, mixins
 
-from .uil import return_products as get_object, return_categories, return_manufacturer, return_orders, return_order_details, return_response, return_user, return_user_statement
+from .uil import receiveable, return_products as get_object, return_categories, return_manufacturer, return_orders, return_order_details, return_response, return_user, return_user_statement
 
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -549,14 +549,14 @@ class UserInvoice(generics.ListAPIView):
             total = models.execute_kw(db, uid, password,
             'res.partner', 'search_count',
             [[
-                # ['partner_id', '=', user ],
+                # ["account_id", '=', 788],
             ]])
             data = models.execute_kw(
             db, uid, password, 
-            'res.users', 'search_read', 
+            'account.invoice', 'search_read', 
             [[
-                ['login', '=', 'graceclinic@drugstoc.com'],
-                # ['partner_id', '=', user ],
+                # ['login', '=', 'graceclinic@drugstoc.com'],
+                ["state", '=', 'open' ],
             ]], 
             {'fields': 
                 [
@@ -733,6 +733,53 @@ class SalesRep_Customer(generics.ListAPIView):
                 ],'limit': 50, 'offset': offset,})
             # result = map(return_order_details, data)
             return return_response(request, data, total, offset)
+
+class RepReceivables(generics.ListAPIView):
+        queryset = ProductModel.objects.all()
+        serializer_class = ProductSerializer
+        authentication_classes = (authentication.TokenAuthentication,)
+        permission_classes = (permissions.IsAuthenticated,)
+
+        def list(self, request, *args, **kwargs):
+            user = request.user.erp_id;
+            id = request.user.erp_id_2;
+            common = xmlrpclib.ServerProxy('{}/xmlrpc/2/common'.format(url))
+            uid = common.authenticate(db, username, password, {})
+            models = xmlrpclib.ServerProxy('{}/xmlrpc/2/object'.format(url))
+            page = request.query_params.get('page')
+            page_number = 0 if page == None else int(page) - 1
+            offset = page_number * 50
+            total = models.execute_kw(db, uid, password,
+            'res.partner', 'search_count',
+            [[
+                ["user_id", '=', id],
+            ]])
+            data = models.execute_kw(
+            db, uid, password, 
+            'account.invoice', 'search_read', 
+            [[
+                # ['login', '=', 'graceclinic@drugstoc.com'],
+                ["user_id", '=', id],
+                ["state", '=', 'open' ],
+            ]], 
+            {'fields': 
+                [
+                    # 'id',
+                    # 'name', 
+                    # 'login'
+                    # "price_unit",
+                    # "price_subtotal",
+                    # "price_total",
+                    # "product_id",
+                    # "product_uom_qty",
+                    # "salesman_id",
+                    # "order_partner_id",
+                    # "state",
+                    # "create_date"
+                ],'limit': 50, 'offset': offset})
+            result = map(receiveable, data)
+            return return_response(request, result, total, offset)
+
 
 class Customer_Statement(generics.ListAPIView):
     queryset = ManufacturerModel.objects.all()
