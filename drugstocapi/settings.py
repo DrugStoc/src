@@ -40,7 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage', 
     'django.contrib.staticfiles',
+    'cloudinary',
     'corsheaders',
     'rest_framework',
     'django_filters',
@@ -145,13 +147,23 @@ USE_TZ = True
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'static_cdn', 'media')
 
 # STATIC_ROOT = os.path.join(BASE_DIR, 'static_cdn', 'static')
 
-MEDIA_ROOT = '/vol/web/media'
+# MEDIA_ROOT = '/vol/web/media'
 
-STATIC_ROOT = '/vol/web/static'
+# STATIC_ROOT = '/vol/web/static'
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'drugstoc',
+    'API_KEY': '239614696429466',
+    'API_SECRET': 'zKU5NoDFIwGdzWzhvTqjrRheypU'
+}
+
+
 
 AUTH_USER_MODEL = 'user.User'
 

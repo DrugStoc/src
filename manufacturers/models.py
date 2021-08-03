@@ -10,7 +10,7 @@ def document_images_file_path(instance,  filename):
     ext = filename.split('.')[-1]
     filename = f'{uuid.uuid4()}.{ext}'
 
-    return os.path.join('uploads/manufacturer', filename)
+    return os.path.join('manufacturer', filename)
 
 
 class ManufacturerModel(models.Model):

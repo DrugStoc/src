@@ -57,7 +57,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 # username ='licensemgr@drugstoc.com'
 # password = 'mko0nji9'
 
-url = 'http://drugstoc.odoo.com'
+url = 'https://drugstoc.odoo.com'
 db = 'drugstoc-main-master-86674'
 username ='salesRep@drugstoc.com'
 password = '1234567890'
@@ -68,8 +68,8 @@ password = '1234567890'
 class ProductsList(generics.ListAPIView):
     queryset = ProductModel.objects.all()
     serializer_class = ProductSerializer
-    authentication_classes = (authentication.TokenAuthentication,)
-    permission_classes = (permissions.IsAuthenticated,)
+    # authentication_classes = (authentication.TokenAuthentication,)
+    # permission_classes = (permissions.IsAuthenticated,)
     
     
     def list(self, request):
@@ -112,7 +112,7 @@ class ProductsList(generics.ListAPIView):
         result = map(get_object, data)
         return return_response(request, result, total, offset)
         # print(request.build_absolute_uri(''))
-        # return Response({"count": total,  "previous": uro, "next": None, "results": result}, status=200)
+        # return Response({"count": 100,  "previous": 'l', "next": None, "results": []}, status=200)
 
 class ProductDetail(generics.ListAPIView):
     queryset = ProductModel.objects.all()
@@ -126,6 +126,7 @@ class ProductDetail(generics.ListAPIView):
         common = xmlrpclib.ServerProxy('{}/xmlrpc/2/common'.format(url))
         uid = common.authenticate(db, username, password, {})
         models = xmlrpclib.ServerProxy('{}/xmlrpc/2/object'.format(url))
+        print(models)
         total = models.execute_kw(db, uid, password,
         'product.product', 'search_count',
         [[
@@ -829,3 +830,84 @@ class Customer_Statement(generics.ListAPIView):
             result = map(return_user_statement, data)
             print(pk)
             return return_response(request, result, total, offset)
+
+
+class User_Statement(generics.ListAPIView):
+    queryset = ManufacturerModel.objects.all()
+    serializer_class = BulkManufacturers
+    authentication_classes = (authentication.TokenAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def list(self, request, *args, **kwargs):
+            user = request.user.erp_id;
+            id = request.user.erp_id_2;
+            print(user)
+            common = xmlrpclib.ServerProxy('{}/xmlrpc/2/common'.format(url))
+            uid = common.authenticate(db, username, password, {})
+            models = xmlrpclib.ServerProxy('{}/xmlrpc/2/object'.format(url))
+            page = request.query_params.get('page')
+            page_number = 0 if page == None else int(page) - 1
+            offset = page_number * 50
+            total = models.execute_kw(db, uid, password,
+            'account.move.line', 'search_count',
+            [[
+                ['partner_id', '=', user ],
+                ["account_id", '=', 788]
+            ]])
+            data = models.execute_kw(
+            db, uid, password, 
+            'account.move.line', 'search_read', 
+            [[
+                ['partner_id', '=', user ],
+                ["account_id", '=', 788]
+            ]], 
+            {'fields': 
+                [
+                    "debit",
+                    "credit",
+                    "balance",
+                    "result",
+                    "display_name",
+                    "create_date",
+                ],'limit': 50, 'offset': offset, 'order': 'date desc'})
+            result = map(return_user_statement, data)
+            print(user)
+            return return_response(request, result, total, offset)
+
+
+class User_Account(generics.ListAPIView):
+    queryset = ManufacturerModel.objects.all()
+    serializer_class = BulkManufacturers
+    authentication_classes = (authentication.TokenAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def list(self, request, *args, **kwargs):
+            user = request.user.erp_id;
+            id = request.user.erp_id_2;
+            print(user)
+            common = xmlrpclib.ServerProxy('{}/xmlrpc/2/common'.format(url))
+            uid = common.authenticate(db, username, password, {})
+            models = xmlrpclib.ServerProxy('{}/xmlrpc/2/object'.format(url))
+            page = request.query_params.get('page')
+            page_number = 0 if page == None else int(page) - 1
+            offset = page_number * 1
+            total = models.execute_kw(db, uid, password,
+            'res.partner', 'search_count',
+            [[
+                ['id', '=', user ],
+                # ["account_id", '=', 788]
+            ]])
+            data = models.execute_kw(
+            db, uid, password, 
+            'res.partner', 'search_read', 
+            [[
+                ['id', '=', user ],
+                # ["account_id", '=', 788]
+            ]], 
+            {'fields': 
+                [
+                'name',
+                'credit',
+                'contact_address'
+                ],'limit': 1, 'offset': offset, 'order': 'date desc'})
+            return Response({ "data": data[0], "status": 200 }, status=200)

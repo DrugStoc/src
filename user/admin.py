@@ -11,6 +11,7 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'password')}), 
         (_('Personal Info'), {'fields': ('name', 'first_name', 'last_name', 'category', 'phone_no', 'erp_id', 'erp_id_2', 'erp_access')}), 
+        (_('Business Info'), {'fields': ('location', 'discover', 'practice_license', 'practice_license_verification', 'premise_license', 'premise_license_verification')}), 
         (
             _('Permissions'),
             {

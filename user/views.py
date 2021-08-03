@@ -3,6 +3,8 @@ import json
 import random
 import math
 
+from datetime import datetime
+
 
 import requests 
 
@@ -138,8 +140,10 @@ class VerifyOtp(generics.CreateAPIView):
             cod  = PhoneOtp.objects.get(phone_no=phone_no, otp_code=otp, is_verified=False)
             print(cod)
         except ObjectDoesNotExist:
-            return Response({"message": "Invalid Otp please check and try again"}, status=422)
+            return Response({"message": "Invalid OTP, please check and try again"}, status=422)
         else:
+            print(cod.created_date);
+            print(datetime.today());
             cod.is_verified = True
             cod.attempts += 1
             cod.save()
