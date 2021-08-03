@@ -32,6 +32,7 @@ class UserManager(BaseUserManager):
         """Creates and save a new super user"""
         user = self.create_user(email, password)
         user.is_staff = True
+        user.is_active = True
         user.is_superuser = True
         user.save(using=self._db)
 
@@ -111,7 +112,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     erp_id = models.IntegerField(default=0, blank=False)
     erp_id_2 = models.IntegerField(default=0, blank=False)
     erp_access = models.CharField(max_length=255, default="")
-    is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=True)
     is_verified = models.BooleanField(default=False)
 
