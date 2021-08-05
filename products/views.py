@@ -627,7 +627,7 @@ class CreateOrder(generics.CreateAPIView):
         print(orders)
         for l in orders:
             params2 = models.execute_kw(db, uid, password,'sale.order.line', 'create',[l]);
-        CartItem.objects.filter(is_checkedout=False).update(is_checkedout=True)
+        CartItem.objects.filter(is_checkedout=False, user=request.user).update(is_checkedout=True)
         return Response({"message": "Draft Created", "data": result, "user": user, "params2": params2}, status=201)
 
 class Bulk_Manufacturers(generics.CreateAPIView):
