@@ -128,8 +128,14 @@ def receiveable(n):
 
 def return_response(request, data, total, offset):
     page = request.query_params.get('page')
+    query = request.query_params.get('query')
+    def get_query():
+        if(query):
+            return f'query={query}&'
+        else:
+            return ''
     uro = request.build_absolute_uri('')
     page_number = 1 if page == None else int(page)
-    next_page = f'{uro}?page={page_number + 1}' if total > offset + 50 else None
-    prev_page = None if page == None or total < offset else uro if int(page) <= 2 else f'{uro}?page={page_number - 1}'
+    next_page = f'{uro}?{get_query()}page={page_number + 1}' if total > offset + 50 else None
+    prev_page = None if page == None or total < offset else uro if int(page) <= 2 else f'{uro}?{get_query()}page={page_number - 1}'
     return Response({"count": total,  "next": next_page, "previous": prev_page, "results": data}, status=200)

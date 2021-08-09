@@ -76,7 +76,6 @@ class CreateUserView(generics.CreateAPIView):
             return Response({"message": "your registeration was successful an otp has been sent to you to verify you account", "status": 200, "data": serializer.data, }, status=200)
         return Response({"message": "Invalid Request", "status": 400}, status=400)
 
-
 class ResendOtp(generics.CreateAPIView):
     """Create a new user in the system"""
     serializer_class = ResendOtpSerilizer
@@ -124,7 +123,6 @@ class DocumentList(generics.CreateAPIView):
         serializer.save(user=self.request.user)
         return Response({"message": "your document has been uploaded successfuly", "status": 200 }, status=200)
 
-
 class VerifyOtp(generics.CreateAPIView):
     """ Verify a new user with phone numnber or email"""
     serializer_class = OtpSerializer
@@ -157,12 +155,10 @@ class VerifyOtp(generics.CreateAPIView):
                 token = Token.objects.create(user=qs);
                 return Response({"message": "Your account has been verified", "token": token.key, }, status=200)
 
-
 class CreateTokenView(ObtainAuthToken):
     """Create new user in the system"""
     serializer_class = AuthTokenSerializer
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
-
 
 class ManageUserView(generics.RetrieveUpdateAPIView):
     """Manage the authenticated user"""
@@ -173,7 +169,6 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         """Retreive and return authenticated user"""
         return self.request.user
-
 
 class UserList(generics.ListAPIView):
     """List all users in the system"""

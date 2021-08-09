@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from xmlrpc import client as xmlrpclib
 import socket
 import json
@@ -22,7 +22,7 @@ from .uil import receiveable, return_products as get_object, return_categories, 
 
 from django.core.exceptions import ObjectDoesNotExist
 
-from django.db.models import Q
+from django.db.models import Q, query
 
 from .serializers import ProductSerializer, CategorySerializer, ManfacturerSerializer, orderSerializer, CreateOrderSerializer, syncUserSerializer, BulkManufacturers
 
@@ -42,7 +42,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 
 # url = 'http://drugstoc-erpsoft-2890934.dev.odoo.com'
 # db = 'drugstoc-erpsoft-2890934'
-# username = 'licensemgr@drugstoc.com'
+# login = 'licensemgr@drugstoc.com'
 # password = 'mko0nji9'
 
 # https://drugstoc-erpsoft-2890934.dev.odoo.com/
@@ -599,9 +599,7 @@ class CreateOrder(generics.CreateAPIView):
     queryset = ProductModel.objects.all()
     serializer_class = CreateOrderSerializer
     authentication_classes = (authentication.TokenAuthentication,)
-    permission_classes = (permissions.IsAuthenticated,)
-
-    
+    permission_classes = (permissions.IsAuthenticated,) 
 
     def post(self, request):
         data = request.data.get('items')
@@ -663,9 +661,6 @@ class SalesRep_Activities(generics.ListAPIView):
             offset = page_number * 50 
             today = datetime.today()
             datem = datetime(today.year, today.month, 1)
-
-            print(datem.isoformat(' ', 'seconds'))
-            print(today.isoformat(' ', 'seconds'))
 
             data = models.execute_kw(
             db, uid, password, 
@@ -788,6 +783,78 @@ class RepReceivables(generics.ListAPIView):
             result = map(receiveable, data)
             return return_response(request, result, total, offset)
 
+class RepSales(generics.ListAPIView):
+        queryset = ProductModel.objects.all()
+        serializer_class = ProductSerializer
+        authentication_classes = (authentication.TokenAuthentication,)
+        permission_classes = (permissions.IsAuthenticated,)
+
+        def list(self, request, *args, **kwargs):
+            user = request.user.erp_id
+            id = request.user.erp_id_2
+            query = request.GET.get('query')
+            common = xmlrpclib.ServerProxy('{}/xmlrpc/2/common'.format(url))
+            uid = common.authenticate(db, username, password, {})
+            models = xmlrpclib.ServerProxy('{}/xmlrpc/2/object'.format(url))
+            page = request.query_params.get('page')
+            page_number = 0 if page == None else int(page) - 1
+            offset = page_number * 50
+            today = datetime.today()
+            start_week = today - timedelta(days=today.weekday())
+            datem = datetime(today.year, today.month, 1)
+            def start_time():
+                switcher = {
+                    'day': today,
+                    'year': datetime(today.year, 1, 1),
+                    'week': start_week,
+                    'month': datetime(today.year, today.month, 1)
+                }
+                return switcher.get(query, datetime(today.year, today.month, 1))
+
+            def end_time():
+                switcher = {
+                    'day': today,
+                    'year': datetime(today.year, 12, 31),
+                    'week': start_week + timedelta(days=18),
+                    'month': today
+                }
+                return switcher.get(query, today)
+
+
+            total = models.execute_kw(db, uid, password,
+            'sale.order', 'search_count',
+            [[
+                ["user_id", '=', id],
+                ['date_order', '>=', start_time().isoformat(' ', 'seconds')],
+                ['date_order', '<=', end_time().isoformat(' ', 'seconds')],
+                ['state', '=', 'done']
+            ]])
+            data = models.execute_kw(
+            db, uid, password, 
+            'sale.order', 'search_read', 
+            [[
+                ['user_id', '=', id ],
+                ['date_order', '>=', start_time().isoformat(' ', 'seconds')],
+                ['date_order', '<=', end_time().isoformat(' ', 'seconds')],
+                ['state', '=', 'done']
+            ]], 
+            {'fields': 
+                [
+                    # 'id',
+                    # 'name', 
+                    # 'login'
+                    # "price_unit",
+                    # "price_subtotal",
+                    # "price_total",
+                    # "product_id",
+                    # "product_uom_qty",
+                    # "salesman_id",
+                    # "order_partner_id",
+                    # "state",
+                    # "create_date"
+                ],'limit': 50, 'offset': offset})
+            result = map(return_orders, data)
+            return return_response(request, result, total, offset)
 
 class Customer_Statement(generics.ListAPIView):
     queryset = ManufacturerModel.objects.all()
@@ -831,7 +898,6 @@ class Customer_Statement(generics.ListAPIView):
             print(pk)
             return return_response(request, result, total, offset)
 
-
 class User_Statement(generics.ListAPIView):
     queryset = ManufacturerModel.objects.all()
     serializer_class = BulkManufacturers
@@ -874,7 +940,6 @@ class User_Statement(generics.ListAPIView):
             print(user)
             return return_response(request, result, total, offset)
 
-
 class User_Account(generics.ListAPIView):
     queryset = ManufacturerModel.objects.all()
     serializer_class = BulkManufacturers
@@ -911,3 +976,39 @@ class User_Account(generics.ListAPIView):
                 'contact_address'
                 ],'limit': 1, 'offset': offset, 'order': 'date desc'})
             return Response({ "data": data[0], "status": 200 }, status=200)
+
+class CreateOrderSale(generics.CreateAPIView):
+    queryset = ProductModel.objects.all()
+    serializer_class = CreateOrderSerializer
+    authentication_classes = (authentication.TokenAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,) 
+
+    def post(self, request, *args, **kwargs):
+        data = request.data.get('items')
+        login = request.user.email
+        access = request.user.erp_access
+        user = request.data.get('id');
+        # print(user)
+        common = xmlrpclib.ServerProxy('{}/xmlrpc/2/common'.format(url))
+        uid = common.authenticate(db, login, access, {})
+        models = xmlrpclib.ServerProxy('{}/xmlrpc/2/object'.format(url))
+        params = models.execute_kw(db, uid, access,
+            'sale.order', 'create',
+            [ {
+                'partner_id' : user,
+                # 'user_id': user
+            }])
+        def create_order(n):
+            return {
+                'order_id': params,
+                'product_id': n['ids'],
+                'name':n['name'],
+                'product_uom_qty': n['quantity'],
+            }
+        result = map(create_order, data)
+        orders = list(result)
+        print(orders)
+        for l in orders:
+            params2 = models.execute_kw(db, uid, access,'sale.order.line', 'create',[l]);
+        CartItem.objects.filter(is_checkedout=False, user=request.user).update(is_checkedout=True)
+        return Response({"message": "Draft Created", "data": result, "user": user, "params2": params2}, status=201)
