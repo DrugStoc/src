@@ -21,7 +21,7 @@ class ManufacturerModel(models.Model):
     image = models.ImageField(null=True, upload_to=document_images_file_path, blank=True)
 
     class Meta:
-        ordering = ('user__priority', )
+        ordering = ('priority', )
 
     def __str__(self):
         return self.name
