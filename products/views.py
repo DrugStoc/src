@@ -561,10 +561,10 @@ class UserInvoice(generics.ListAPIView):
             ]])
             data = models.execute_kw(
             db, uid, password, 
-            'account.invoice', 'search_read', 
+            'res.users', 'search_read', 
             [[
                 # ['login', '=', 'graceclinic@drugstoc.com'],
-                ["state", '=', 'open' ],
+                ["id", '=', 18 ],
             ]], 
             {'fields': 
                 [
