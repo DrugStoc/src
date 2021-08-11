@@ -312,7 +312,7 @@ class BrandList(generics.ListAPIView):
         filterset_fields = [ "id", "name", "priority"]
         search_fields = ["id", "name", "priority"]
         ordering_fields = ["id", "name", "priority"]
-        ordering = ["id"]
+        ordering = ["priority"]
 
 class ProductPerCatgory(generics.ListAPIView):
         queryset = ProductModel.objects.all()
